@@ -2,7 +2,6 @@ import requests
 from bs4 import BeautifulSoup
 from pymongo import MongoClient
 
-# Define governorates globally
 governorates = [
     "Ariana", "Béja", "Ben Arous", "Bizerte", "Jendouba","Sfax",
     "Kef", "Manouba", "Nabeul", "Tunis", "Zaghouan","Sidi Bouzid",
@@ -50,6 +49,15 @@ def insert_into_mongodb(collection, accidents):
         # Add the 'location' field to the accident document
         location = find_governorate(accident['title'])
         accident['location'] = location.lower() if location else None
+        # Check if the accident with the same link already exists in the database
+        existing_accident = collection.find_one({'link': accident['link']})
+
+        if not existing_accident:
+            # Insert the accident data if it doesn't exist in the database
+            collection.insert_one(accident)
+            print(f"New accident added to the database. ID: {accident['id']}")
+        else:
+            print(f"Accident with link {accident['link']} already exists in the database. Skipping.")
     collection.insert_many(accidents)
 
 def main():
